@@ -10,7 +10,7 @@ Use the `az login` command to initially login to Azure.
 
 We will use the `az aks create` command to create our `sdb-cluster` using the following optional flags:
 
-Note: `--name` and `--resource-group` are required
+> Note: `--name` and `--resource-group` are required
 
     --node-count
     --node-vm-size
@@ -19,12 +19,12 @@ Note: `--name` and `--resource-group` are required
     --max-count
     --network-plugin
     --network-policy
-
+    
 ###### Example command
 ```
 az aks create --name sdb-cluster --resource-group singlestore --node-count 4 --node-vm-size standard_d4s_v3 --enable-cluster-autoscaler --min-count 1 --max-count 12 --network-plugin azure --network-policy calico
 ```
-Note: Azure CNI and Calico are recommended
+> Note: Azure CNI and Calico are recommended
 
 Run the `az account set --subscription <subscription-id>` and `az aks get-credentials --resource-group singlestore --name sdb-cluster` commands to connect to your Kubernetes cluster.
 
