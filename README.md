@@ -8,9 +8,9 @@ Use the `az login` command to initially login to Azure.
 
 ## Creating and connecting to the Kubernetes cluster
 
-We will use the `az aks create` command to create our `sdb-cluster` using the following optional flags:
+We will use the `az aks create` command to create our `sdb-cluster` using the following flags:
 
-> Note: `--name` and `--resource-group` are required
+`--name` and `--resource-group` are required
 
     --node-count
     --node-vm-size
@@ -24,9 +24,13 @@ We will use the `az aks create` command to create our `sdb-cluster` using the fo
 ```
 az aks create --name sdb-cluster --resource-group singlestore --node-count 4 --node-vm-size standard_d4s_v3 --enable-cluster-autoscaler --min-count 1 --max-count 12 --network-plugin azure --network-policy calico
 ```
-> Note: Azure CNI and Calico are recommended
+> Azure CNI and Calico are required for SingleStore
 
-Run the `az account set --subscription <subscription-id>` and `az aks get-credentials --resource-group singlestore --name sdb-cluster` commands to connect to your Kubernetes cluster.
+To connect to your cluster, run the `set --subscription` and `get-credentials` commands
+
+###### Example commands
+`az account set --subscription <subscription-id>`
+`az aks get-credentials --resource-group singlestore --name sdb-cluster`
 
 If you have kubectl correctly installed, you should now be able to run `kubectl get ns` without errors.
 
