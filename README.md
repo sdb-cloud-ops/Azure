@@ -2,9 +2,11 @@
 
 ### Prerequisites 
 
-Make sure you have [kubectl](https://kubernetes.io/docs/tasks/tools/) and [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/) installed.
+Make sure you have [kubectl](https://kubernetes.io/docs/tasks/tools/) and [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/) installed
 
-Use the `az login` command to initially login to Azure.
+Obtain a SingleStore license from the [SingleStore Customer Portal](https://portal.singlestore.com).
+
+Use the `az login` command to initially login to Azure
 
 ## Creating and connecting to the Kubernetes cluster
 
@@ -26,12 +28,15 @@ az aks create --name sdb-cluster --resource-group singlestore --node-count 4 --n
 ```
 > Azure CNI and Calico are required for SingleStore
 
-To connect to your cluster, run the `set --subscription` and `get-credentials` commands
-
-###### Example commands
+###### To set your account
 `az account set --subscription <subscription-id>`
+
+###### To get your credentials
+Configure kubectl to connect to your Kubernetes cluster using the az aks get-credentials command. The following command downloads credentials and configures the Kubernetes CLI to use them.
+
 `az aks get-credentials --resource-group singlestore --name sdb-cluster`
 
+###### Verify
 If you have kubectl correctly installed, you should now be able to run `kubectl get ns` without errors.
 
 ## Deploy SingleStore on Kubernetes
@@ -130,23 +135,49 @@ Create the memsql custom resource
 ```
 kubectl -n singlestore create -f memsql-cluster.yaml
 ```
+After a couple minutes, run `kubectl -n singlestore get pods` again to verify the aggregator and leaf nodes all started and have a status of Running.
+
+If you see no pods are in the Running state, check the Operator logs by running 
+kubectl -n singlestore logs deployment memsql-operator then look at the various objects to see what is failing.
+    
 Now you can run `kubectl -n singlestore get memsql` to see the custom resource that was created.
 ```
 NAME             AGGREGATORS   LEAVES   REDUNDANCY LEVEL   AGE
 memsql-cluster   1             1        2                  30h
 ```
-### Connect to the database
+##### Verify the cluster
+```
+kubectl get memsql memsql-cluster -o=jsonpath='{.status.phase}{"\n"}' -n singlestore
+```
+The SingleStore DB server deployment is complete when `Running` is displayed after running the above commands.
 
-Run `kubectl -n singlestore get services` in order to get the `ddl` endpoint
+### Connect to the database
+Install the [SingleStore Client](https://docs.singlestore.com/db/v7.6/en/user-and-cluster-administration/cluster-management-with-tools/singlestore-client.html)
+
+After the deployment completes, run the following command to display the two SingleStore DB service endpoints that are created during the deployment
+```
+kubectl -n singlestore get services
+```
+The `svc-<cluster-name>-ddl` and `svc-<cluster-name>-dml` service endpoints can be used to connect to SingleStore DB using a MySQL compatible client. Note that svc-<cluster-name>-dml only exists if  memsqlCluster.aggregatorSpec.count is greater than 1.
 ```
 NAME                     TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)          AGE
 svc-memsql-cluster       ClusterIP      None             <none>          3306/TCP         30h
 svc-memsql-cluster-ddl   LoadBalancer   <ip-address>     <ip-address>    3306:30907/TCP   30h
 ```
 The IP address under `EXTERNAL-IP` in the `svc-memsql-cluster-ddl` row is the one that you will use to connect to your database. You will use the `admin` user and the un-hashed password with port `3306` to connect. 
-
+    
 ###### Example connection command
 ```
-mysql -h<ip-address> -uadmin -P3306 -p<secretpass>
+singlestore -h<ip-address> -uadmin -P3306 -p<secretpass>
 ```
+Refer to [Data Definition Language DDL](https://docs.singlestore.com/db/v7.3/en/reference/sql-reference/data-definition-language-ddl/data-definition-language-ddl.html) and [Data Manipulation Language DML](https://docs.singlestore.com/db/v7.3/en/reference/sql-reference/data-manipulation-language-dml/data-manipulation-language-dml.html) for more information.
+
+Check status of aggregators and leafs
+```
+show aggregators;
+```
+```
+show leaves;
+```
+
 This concludes setting up SingleStore with Azure Kubernetes Engine.
