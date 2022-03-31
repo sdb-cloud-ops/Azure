@@ -1,4 +1,4 @@
-# Deploy SingleStore with Azure Kubernetes Engine
+# Deploy SingleStore with Azure Kubernetes Service
 
 ### Prerequisites 
 
@@ -28,15 +28,15 @@ az aks create --name sdb-cluster --resource-group singlestore --node-count 4 --n
 ```
 > Azure CNI and Calico are required for SingleStore
 
-###### To set your account
+##### To set your account
 `az account set --subscription <subscription-id>`
 
-###### To get your credentials
+##### To get your credentials
 Configure kubectl to connect to your Kubernetes cluster using the az aks get-credentials command. The following command downloads credentials and configures the Kubernetes CLI to use them.
 
 `az aks get-credentials --resource-group singlestore --name sdb-cluster`
 
-###### Verify
+##### Verify
 If you have kubectl correctly installed, you should now be able to run `kubectl get ns` without errors.
 
 ## Deploy SingleStore on Kubernetes
